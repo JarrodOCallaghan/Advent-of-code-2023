@@ -46,8 +46,6 @@ fn part_1(data: &Vec<String>){
 
 fn part_2(data: &Vec<String>){
     let mut found_numbers: Vec<u32> = Vec::new();
-
-    let mut found_numbers: Vec<u32> = Vec::new();
     for line in data {
         let line = &str::replace(&line.to_lowercase(), "one", "one1one");
         let line = &str::replace(&line.to_lowercase(), "two", "two2two");
@@ -73,7 +71,6 @@ fn part_2(data: &Vec<String>){
                 break;
             }
         }
-        println!("{} - {}", first_num, last_num);
         found_numbers.push(first_num + last_num);
     }
 
