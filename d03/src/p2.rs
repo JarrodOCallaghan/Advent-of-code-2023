@@ -1,20 +1,19 @@
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 struct Coordinate {
-    row: i32,
-    col: i32,
+    line: i32,
+    char_pos: i32,
 }
 
 use std::collections::HashMap;
-
 pub fn solve(data: &Vec<Vec<char>>) {
     let mut total: i32 = 0;
-    let mut gear_ratios: HashMap<Coordinate, Vec<i32>> = HashMap::new();
-
-    for (i, row) in data.iter().enumerate() {
+    let mut gears: HashMap<Coordinate, Vec<i32>> = Default::default();
+    
+    for (i, line) in data.iter().enumerate() {
         let mut is_valid: bool = false;
         let mut number: i32 = 0;
-        let mut saved_coord: Coordinate;
-        for (j, c) in row.iter().enumerate() {
+        let mut coord: Option<Coordinate> = Some(Coordinate{char_pos: 0, line: 0});
+        for (j, c) in line.iter().enumerate() {
             if c.is_digit(10) {
                 let n = c.to_digit(10).unwrap_or(0) as i32;
                 if number == 0 {
@@ -23,58 +22,99 @@ pub fn solve(data: &Vec<Vec<char>>) {
                     number = number * 10 + n;
                 }
                 let current = Coordinate {
-                    col: i as i32,
-                    row: j as i32,
+                    line: i as i32,
+                    char_pos: j as i32,  
                 };
                 // print!("GOT HERE");
-                let (validity, coord) = check_perimeter_for_gear(data, current);
-                saved_coord = coord;
+                // let coord: Option<Coordinate>;
 
-                if validity {
-                    is_valid = true;
-                    // gear_ratios.insert(coord, Vec::new());
+                let mut validate = false;
+                if is_valid == false{
+                    (validate, coord) = check_perimeter_for_special_char(data, current);
                 }
+                
+                if validate {
+                    is_valid = true;
 
+                    // println!("{is_valid}, {}");
+                    // is_valid = true;
+
+                    // println!("True");
+                }
+                if is_valid{
+                    // println!("{number}");
+                    let test = coord.unwrap();
+                    // println!("FINAL COORD: {} x {}", test.line, test.char_pos);
+                }
+                // println!("{}", c);
             } else {
+                if number > 0 && is_valid {
+
+                    // Lets check if the hashmap has value
+                    let coord = coord.unwrap_or(Coordinate{char_pos:0,line:0});
+                    if let Some(x) = gears.get_mut(&coord){
+                        x.push(number);
+                    } else {
+                        gears.insert(
+                            coord,
+                            vec![number]
+                        );
+                    }
+                    
+                    // let test = gears.get(&coord);
+
+                    // gears.get(coord.unwrap()).push(number)
+                }
                 if is_valid {
-                    // let mut key_vector: Vec<i32> = gear_ratios.get(&saved_coord);
-                    // key_vector.push(number);
-                    // gear_ratios.insert(saved_coord, key_vector);
+                    // total += number;
                     is_valid = false;
                 }
                 number = 0
             }
         }
     }
-    println!("P2 total: {total}");
+    for (k,v) in gears{
+        let mut sub_total: i32 = 0;
+        if v.len() >= 2{
+            for item in v{
+                println!("{item}");
+                if sub_total == 0 {
+                    sub_total = item;
+                } else {
+                    sub_total *= item;
+                }
+            }
+            println!("{sub_total}");
+            total += sub_total;
+        }
+    }
+    println!("P2 Total: {total}");
 }
 
-
-fn check_perimeter_for_gear(data: &Vec<Vec<char>>, current: Coordinate) -> (bool, Coordinate) {
-    let mut validity: bool;
-
+fn check_perimeter_for_special_char(data: &Vec<Vec<char>>, current: Coordinate) -> (bool, Option<Coordinate>) {
+    // println!("Char ?: {}", data[current.char_pos as usize][current.line as usize]);
     for i in -1..2 {
         for j in -1..2 {
             let next_coord = Coordinate {
-                col: current.col + i,
-                row: current.row + j,
+                line: current.line + i,
+                char_pos: current.char_pos + j,
             };
-
             if is_coord_in_range(&next_coord, data.len(), data[0].len()) {
-                let c = data[next_coord.col as usize][next_coord.row as usize];
-                if c == '*'{
-                    return (true, next_coord);
+                let c = data[next_coord.line as usize][next_coord.char_pos as usize];
+                if c == '*' {
+                    // println!("CHAR: {c}: ");
+                    // println!("{} x {}", next_coord.line, next_coord.char_pos);
+                    return (true, Some(next_coord));
                 }
             }
-
         }
     }
-    return (false, current);
+    return (false, None);
 }
 
-fn is_coord_in_range(next_coord: &Coordinate, max_col: usize, max_row: usize) -> bool {
-    if (0 <= next_coord.row && next_coord.row < max_row as i32)
-        && (0 <= next_coord.col && next_coord.col < max_col as i32)
+fn is_coord_in_range(next_coord: &Coordinate, max_line: usize, max_char_pos: usize) -> bool {
+    if (0 <= next_coord.line && next_coord.line < max_line as i32)
+        && (0 <= next_coord.char_pos && next_coord.char_pos < max_char_pos as i32)
     {
         return true;
     }

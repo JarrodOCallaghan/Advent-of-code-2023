@@ -5,7 +5,7 @@ mod p2;
 fn main() {
     let data = read_data("data.txt");
     p1::solve(&data);
-    // p2::solve(&data);
+    p2::solve(&data);
 }
 
 fn read_data(filename: &str) -> Vec<Vec<char>> {
